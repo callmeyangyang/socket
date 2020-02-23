@@ -18,8 +18,7 @@ int main(void)
     {
         printf("´ò¿ªÍøÂç¿âÊ§°Ü.\n");
     }
-
-
+    
 
     system("pause");
     return  0;
