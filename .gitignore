@@ -23,6 +23,8 @@
 *.tmp
 *.manifest
 *.i
+*.sdf
+*.opensdf
 Src/*/Debug
 Src/*/Release
 Src/debug/*.lib
