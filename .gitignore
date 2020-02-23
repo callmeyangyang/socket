@@ -25,6 +25,11 @@
 *.i
 *.sdf
 *.opensdf
+Src/server/Debug
+Src/server/Release
+Src/server/*.sln
+Src/server/*.sdf
+Src/server/*.v12.suo
 Src/*/Debug
 Src/*/Release
 Src/debug/*.lib
