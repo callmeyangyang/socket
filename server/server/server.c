@@ -103,6 +103,13 @@ int main(void)
         return 0;
     }
     printf("client link server success.\n"); 
+    // 给客户端发送数据
+    int iRes5 = send(socketClient, "我是服务器，我收到了你的消息", sizeof("我是服务器，我收到了你的消息"), 0);
+    if (SOCKET_ERROR == iRes5)
+    {
+        int error = WSAGetLastError();
+        printf("send() failed and error code = %d.\n", error);
+    }
 
     // 接收从客户端发送来的数据
     char buf[1500];
@@ -122,17 +129,9 @@ int main(void)
     else
     {
         // 执行成功，接收到客户端发送过来的数据
-        printf("%s,%d.\n", buf, iRes4);
+        printf("%s,收到的数据的字节个数 = %d.\n", buf, iRes4);
     }
     
-    // 给客户端发送数据
-    int iRes5 = send(socketClient, "abcd", sizeof("abcd"), 0);
-    if (SOCKET_ERROR == iRes5)
-    {
-        int error = WSAGetLastError();
-        printf("send() failed and error code = %d.\n", error);
-    }
-
 
     closesocket(socketClient);
     closesocket(socketServer);
