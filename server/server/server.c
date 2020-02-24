@@ -95,11 +95,36 @@ int main(void)
     {
         int error = WSAGetLastError();
         printf("accept() failed and error code = %d.\n", error);
+        printf("client link server failed.\n");
 
         closesocket(socketServer);
         WSACleanup();
         return 0;
     }
+    printf("client link server success.\n"); 
+
+    // 接收从客户端发送来的数据
+    char buf[1500];
+    int iRes4 = recv(socketClient, buf, 1499, 0);
+    if (0 == iRes4)
+    {
+        printf("链接中断，客户端下线.\n");
+    }
+    else if (SOCKET_ERROR == iRes4)
+    {
+        int error = WSAGetLastError();
+        printf("recv() failed and error code = %d.\n", error);
+        // 这里不需要关闭socket
+        // 这里出错表示收发数据的过程中出错了
+
+    }
+    else
+    {
+        // 执行成功，接收到客户端发送过来的数据
+        printf("%s,%d.\n", buf, iRes4);
+    }
+    
+
 
     closesocket(socketClient);
     closesocket(socketServer);
