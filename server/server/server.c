@@ -7,27 +7,12 @@
 #include<WinSock2.h>
 #pragma comment(lib,"ws2_32.lib")
 
-// 初始化
-int init(); 
-
 int main(void)
-{
-    // 初始化，打开网络库
-    int iRes1 = init();
-    if (0 != iRes1)
-    {
-        printf("打开网络库失败.\n");
-    }
-    
-
-    system("pause");
-    return  0;
-}
-
-int init()
 {
     WORD wVersionRequested = MAKEWORD(2, 2);
     WSADATA lpWsaData;
+
+    // 打开网络库
     int iRes1 = WSAStartup(wVersionRequested, &lpWsaData);
     // WSAStartup执行出错
     if (0 != iRes1)
@@ -50,8 +35,20 @@ int init()
             printf("WSAStartup的第个参数填写错误.\n");
             break;
         }
-        return iRes1;
     }
 
-    return iRes1;
+    // 版本校验
+    if (2 != HIBYTE(lpWsaData.wVersion) || 2 != LOBYTE(lpWsaData.wVersion))
+    {
+        // 版本不对
+        // 关闭网络库
+        WSACleanup();
+        return 0;   // 结束主函数
+    }
+   
+    
+
+    system("pause");
+    return  0;
 }
+
