@@ -124,6 +124,13 @@ int main(void)
         printf("%s,%d.\n", buf, iRes4);
     }
     
+    // 给客户端发送数据
+    int iRes5 = send(socketClient, "abcd", sizeof("abcd"), 0);
+    if (SOCKET_ERROR == iRes5)
+    {
+        int error = WSAGetLastError();
+        printf("send() failed and error code = %d.\n", error);
+    }
 
 
     closesocket(socketClient);
