@@ -75,6 +75,18 @@ int main(void)
         return 0;
     }
 
+    // 启动服务端socket，接收客户端连接
+    int iRes3 = listen(socketServer, SOMAXCONN);
+    if (SOCKET_ERROR == iRes3)
+    {
+        int error = WSAGetLastError();
+        printf("listen() failed and error code = %d.\n", error);
+
+        closesocket(socketServer);
+        WSACleanup();
+        return 0;
+    }
+
     closesocket(socketServer);
     WSACleanup();
 
