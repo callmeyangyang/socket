@@ -45,8 +45,22 @@ int main(void)
         WSACleanup();
         return 0;   // 结束主函数
     }
-   
+
+    // 创建服务器端socket
+    SOCKET socketServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (INVALID_SOCKET == socketServer)
+    {
+        // socket()执行失败
+        int error = WSAGetLastError();
+        printf("socket failed and error code = %d.\n", error);
+
+        // 清理网络库
+        WSACleanup();
+        return 0;
+    }
     
+    closesocket(socketServer);
+    WSACleanup();
 
     system("pause");
     return  0;
