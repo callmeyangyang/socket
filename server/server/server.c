@@ -35,6 +35,7 @@ int main(void)
             printf("WSAStartup的第个参数填写错误.\n");
             break;
         }
+        return 0;
     }
 
     // 版本校验
