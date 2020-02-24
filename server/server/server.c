@@ -58,7 +58,23 @@ int main(void)
         WSACleanup();
         return 0;
     }
-    
+
+    // 绑定具体的地址和端口号
+    struct sockaddr_in si;
+    si.sin_family = AF_INET;
+    si.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+    si.sin_port = htons(12345);
+    int iRes2 = bind(socketServer, (const struct sockaddr *)&si, sizeof(struct sockaddr_in));
+    if (SOCKET_ERROR == iRes2)
+    {
+        int error = WSAGetLastError();
+        printf("bind() failed and error code = %d.\n",error);
+
+        closesocket(socketServer);
+        WSACleanup();
+        return 0;
+    }
+
     closesocket(socketServer);
     WSACleanup();
 
