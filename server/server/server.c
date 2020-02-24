@@ -87,6 +87,21 @@ int main(void)
         return 0;
     }
 
+    // 得到连接服务器的客户端的socket
+    struct sockaddr_in clientMsg;
+    int iLen = sizeof(struct sockaddr_in);
+    SOCKET socketClient = accept(socketServer, (struct sockaddr *)&clientMsg, &iLen);
+    if (INVALID_SOCKET == socketClient)
+    {
+        int error = WSAGetLastError();
+        printf("accept() failed and error code = %d.\n", error);
+
+        closesocket(socketServer);
+        WSACleanup();
+        return 0;
+    }
+
+    closesocket(socketClient);
     closesocket(socketServer);
     WSACleanup();
 
