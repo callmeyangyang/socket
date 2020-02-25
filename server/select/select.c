@@ -88,7 +88,22 @@ int main(void)
         return 0;
     }
 
-    
+    // 定义一个装客户端的数据结构
+    fd_set clientSockets;
+
+    FD_ZERO(&clientSockets);                // 清零
+    FD_SET(socketServer, &clientSockets);   // 向集合中添加一个socket
+
+    FD_CLR(socketServer, &clientSockets);   // 删除集合中指定的socket
+    closesocket(socketServer);
+
+    FD_ISSET(socketServer, &clientSockets); // 判断一个socket是否在集合中
+
+
+
+
+
+
     closesocket(socketServer);
     WSACleanup();
 
