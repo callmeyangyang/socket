@@ -89,17 +89,43 @@ int main(void)
     }
 
     // 定义一个装客户端的数据结构
-    fd_set clientSockets;
+    fd_set allSockets;
 
-    FD_ZERO(&clientSockets);                // 清零
-    FD_SET(socketServer, &clientSockets);   // 向集合中添加一个socket
+    //FD_ZERO(&allSockets);                // 清零
+    //FD_SET(socketServer, &allSockets);   // 向集合中添加一个socket
 
-    FD_CLR(socketServer, &clientSockets);   // 删除集合中指定的socket
-    closesocket(socketServer);
+    //FD_CLR(socketServer, &allSockets);   // 删除集合中指定的socket
+    //closesocket(socketServer);
 
-    FD_ISSET(socketServer, &clientSockets); // 判断一个socket是否在集合中
+    //FD_ISSET(socketServer, &allSockets); // 判断一个socket是否在集合中
 
+    // 清零
+    FD_ZERO(&allSockets);                
+    // 将服务器socket装进fd_set集合中
+    FD_SET(socketServer, &allSockets);
 
+    while (1)
+    {
+        struct timeval st;
+        st.tv_sec = 3;
+        st.tv_usec = 0;
+        int iRes4 = select(0, &allSockets, &allSockets, &allSockets, &st);
+        if (0 == iRes4)
+        {
+            // 客户端在等待时间内没有反应
+            continue;
+        }
+        else if (iRes4 > 0)
+        {
+            // 有客户端请求交流
+        }
+        else
+        {
+            // 出错了
+            int error = WSAGetLastError();
+            printf("select() failed and error code = %d.\n", error);
+        }
+    }
 
 
 
