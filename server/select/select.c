@@ -106,10 +106,12 @@ int main(void)
 
     while (1)
     {
+        // 中间集合fd_set变量
+        fd_set tempSockets = allSockets;
         struct timeval st;
         st.tv_sec = 3;
         st.tv_usec = 0;
-        int iRes4 = select(0, &allSockets, &allSockets, &allSockets, &st);
+        int iRes4 = select(0, &tempSockets, NULL, NULL, &st);
         if (0 == iRes4)
         {
             // 客户端在等待时间内没有反应
@@ -118,6 +120,70 @@ int main(void)
         else if (iRes4 > 0)
         {
             // 有客户端请求交流
+            // 遍历有响应的socket
+            for (u_int i = 0; i < tempSockets.fd_count; i++)
+            {
+                // 取出有响应的socket
+                // 判断取出的socket是服务器socket还是客户端socket
+                if (tempSockets.fd_array[i] == socketServer)
+                {
+                    SOCKET socketClient = accept(socketServer, NULL, NULL);
+                    if (INVALID_SOCKET == socketClient)
+                    {
+                        continue;
+                    }
+                    
+                    // 将连接服务器的客户端socket装进集合中fd_set
+                    FD_SET(socketClient, &allSockets);
+
+                    // send()给客户端发送一条消息：“服务器收到客户端的消息，连接成功”
+                    /*int iRes6 = send(socketClient, "我是服务器，我收到了你的消息", sizeof("我是服务器，我收到了你的消息"), 0);
+                    if (SOCKET_ERROR == iRes6)
+                    {
+                        int error = WSAGetLastError();
+                        printf("send() failed and error code = %d.\n", error);
+                    }*/
+                }
+                else
+                {
+                    // 取出的socket是客户端socket
+                    char strBuf[1500] = { 0 };
+                    int iRes5 = recv(tempSockets.fd_array[i], strBuf, 1500, 0);
+                    if (0 == iRes5)
+                    {
+                        // 客户端下线【客户端正常退出】
+                        // 从集合fd_set中去除下线的客户端socket
+                        SOCKET socketTemp = tempSockets.fd_array[i];
+                        FD_CLR(tempSockets.fd_array[i], &allSockets);                
+                        // 释放下线的客户端socket
+                        closesocket(socketTemp);
+                    }
+                    else if (iRes5 > 0)
+                    {
+                        // 成功接收到了消息
+                        // 打印接收到的消息
+                        printf("服务器收到来自客户端的消息是：%s.\n", strBuf);
+                    }
+                    else
+                    {
+                        // 出错了 SOCKET_ERROR
+                        // 强制关闭客户端也是出错，10054
+                        int error = WSAGetLastError();
+                        switch (error)
+                        {
+                            case 10054:
+                            {
+                                // 从集合fd_set中去除下线的客户端socket
+                                SOCKET socketTemp = tempSockets.fd_array[i];
+                                FD_CLR(tempSockets.fd_array[i], &allSockets);
+                                // 释放下线的客户端socket
+                                closesocket(socketTemp);
+                            }
+                        }
+                        // printf("recv failed and error code = %d.\n",error);
+                    }
+                }         
+            }
         }
         else
         {

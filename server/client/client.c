@@ -81,27 +81,31 @@ int main(void)
     {
         // 与服务器收发消息
         char buf[1500] = { 0 };
-        int iRes4 = recv(socketServer, buf, 50, 0);
-        if (0 == iRes4)
-        {
-            printf("链接中断，客户端下线.\n");
-        }
-        else if (SOCKET_ERROR == iRes4)
-        {
-            int error = WSAGetLastError();
-            printf("recv() failed and error code = %d.\n", error);
-            // 这里不需要关闭socket
-            // 这里出错表示收发数据的过程中出错了
+        //int iRes4 = recv(socketServer, buf, 50, 0);
+        //if (0 == iRes4)
+        //{
+        //    printf("链接中断，客户端下线.\n");
+        //}
+        //else if (SOCKET_ERROR == iRes4)
+        //{
+        //    int error = WSAGetLastError();
+        //    printf("recv() failed and error code = %d.\n", error);
+        //    // 这里不需要关闭socket
+        //    // 这里出错表示收发数据的过程中出错了
 
-        }
-        else
-        {
-            // 执行成功，接收到客户端发送过来的数据
-            printf("%s, %d.\n", buf, iRes4);
-        }
+        //}
+        //else
+        //{
+        //    // 执行成功，接收到客户端发送过来的数据
+        //    printf("%s, %d.\n", buf, iRes4);
+        //}
 
         // 给服务器发送数据
         scanf("%s", buf);
+        if ('0' == buf[0])
+        {
+            break;  // 跳出循环
+        }
         int iRes5 = send(socketServer, buf, strlen(buf), 0);
         if (SOCKET_ERROR == iRes5)
         {
