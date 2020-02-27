@@ -7,8 +7,29 @@
 #include<WinSock2.h>
 #pragma comment(lib,"ws2_32.lib")
 
+fd_set allSockets;
+
+BOOL WINAPI fun(DWORD dwCtrlType)
+{
+    switch (dwCtrlType)
+    {
+        case CTRL_CLOSE_EVENT:
+        {
+            for (u_int i = 0; i < allSockets.fd_count; i++)
+            {
+                closesocket(allSockets.fd_array[i]);
+            }
+            WSACleanup();
+        }
+    }
+
+    return TRUE;
+}
+
 int main(void)
 {
+    SetConsoleCtrlHandler(fun, TRUE);
+
     WORD wVersionRequested = MAKEWORD(2, 2);
     WSADATA lpWsaData;
 
@@ -89,7 +110,7 @@ int main(void)
     }
 
     // 定义一个装客户端的数据结构
-    fd_set allSockets;
+    // fd_set allSockets;
 
     //FD_ZERO(&allSockets);                // 清零
     //FD_SET(socketServer, &allSockets);   // 向集合中添加一个socket
@@ -112,10 +133,12 @@ int main(void)
         fd_set writeSockets = allSockets;
         FD_CLR(socketServer, &writeSockets);    // 可以有也可以没有
 
+        fd_set errorSockets = allSockets;       // 参数4
+
         struct timeval st;
         st.tv_sec = 3;
         st.tv_usec = 0;
-        int iRes4 = select(0, &readSockets, &writeSockets, NULL, &st);
+        int iRes4 = select(0, &readSockets, &writeSockets, &errorSockets, &st);
         if (0 == iRes4)
         {
             // 客户端在等待时间内没有反应
@@ -123,6 +146,18 @@ int main(void)
         }
         else if (iRes4 > 0)
         {
+            // 处理select()参数4
+            for (u_int i = 0; i < errorSockets.fd_count; i++)
+            {
+                char strBuf[100] = { 0 };
+                int len = 99;
+                if (SOCKET_ERROR == getsockopt(errorSockets.fd_array[i], SOL_SOCKET, SO_ERROR, strBuf, &len))
+                {
+                    printf("无法得到异常socket.\n");
+                }
+                printf("异常socket：%s.\n",strBuf);
+            }
+
             // 处理select()参数3
             for (u_int i = 0; i < writeSockets.fd_count; i++)
             {
@@ -209,10 +244,18 @@ int main(void)
             // 出错了
             int error = WSAGetLastError();
             printf("select() failed and error code = %d.\n", error);
+
+            break;  // 跳出while(1)循环
         }
     }
 
-
+    // 什么时候执行到这一步？？？
+    // 需要跳出while()循环
+    // 释放集合中的所有socket
+    for (u_int i = 0; i < allSockets.fd_count; i++)
+    {
+        closesocket(allSockets.fd_array[i]);
+    }
 
 
     closesocket(socketServer);
