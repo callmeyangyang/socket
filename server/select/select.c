@@ -107,11 +107,15 @@ int main(void)
     while (1)
     {
         // 中间集合fd_set变量
-        fd_set tempSockets = allSockets;
+        fd_set readSockets = allSockets;
+
+        fd_set writeSockets = allSockets;
+        FD_CLR(socketServer, &writeSockets);    // 可以有也可以没有
+
         struct timeval st;
         st.tv_sec = 3;
         st.tv_usec = 0;
-        int iRes4 = select(0, &tempSockets, NULL, NULL, &st);
+        int iRes4 = select(0, &readSockets, &writeSockets, NULL, &st);
         if (0 == iRes4)
         {
             // 客户端在等待时间内没有反应
@@ -119,13 +123,28 @@ int main(void)
         }
         else if (iRes4 > 0)
         {
+            // 处理select()参数3
+            for (u_int i = 0; i < writeSockets.fd_count; i++)
+            {
+                // 此时writeSockets中装的有服务器socket和客户端socket
+                // printf("服务器%d , %d：可写.\n", socketServer, writeSockets.fd_array[i]);
+
+                int sendRes = send(writeSockets.fd_array[i], "ok", 2, 0);
+                if (SOCKET_ERROR == sendRes)
+                {
+                    // 客户端正常退出，send()也返回SOCKET_ERROR
+                    int error = WSAGetLastError();
+                    printf("send() failed and error code = %d.\n", error);
+                }
+            }
+
             // 有客户端请求交流
             // 遍历有响应的socket
-            for (u_int i = 0; i < tempSockets.fd_count; i++)
+            for (u_int i = 0; i < readSockets.fd_count; i++)
             {
                 // 取出有响应的socket
                 // 判断取出的socket是服务器socket还是客户端socket
-                if (tempSockets.fd_array[i] == socketServer)
+                if (readSockets.fd_array[i] == socketServer)
                 {
                     SOCKET socketClient = accept(socketServer, NULL, NULL);
                     if (INVALID_SOCKET == socketClient)
@@ -148,13 +167,13 @@ int main(void)
                 {
                     // 取出的socket是客户端socket
                     char strBuf[1500] = { 0 };
-                    int iRes5 = recv(tempSockets.fd_array[i], strBuf, 1500, 0);
+                    int iRes5 = recv(readSockets.fd_array[i], strBuf, 1500, 0);
                     if (0 == iRes5)
                     {
                         // 客户端下线【客户端正常退出】
                         // 从集合fd_set中去除下线的客户端socket
-                        SOCKET socketTemp = tempSockets.fd_array[i];
-                        FD_CLR(tempSockets.fd_array[i], &allSockets);                
+                        SOCKET socketTemp = readSockets.fd_array[i];
+                        FD_CLR(readSockets.fd_array[i], &allSockets);
                         // 释放下线的客户端socket
                         closesocket(socketTemp);
                     }
@@ -174,8 +193,8 @@ int main(void)
                             case 10054:
                             {
                                 // 从集合fd_set中去除下线的客户端socket
-                                SOCKET socketTemp = tempSockets.fd_array[i];
-                                FD_CLR(tempSockets.fd_array[i], &allSockets);
+                                SOCKET socketTemp = readSockets.fd_array[i];
+                                FD_CLR(readSockets.fd_array[i], &allSockets);
                                 // 释放下线的客户端socket
                                 closesocket(socketTemp);
                             }
